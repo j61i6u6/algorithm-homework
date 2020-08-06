@@ -1,0 +1,89 @@
+import numpy as np
+import pandas as pd
+import random
+import time
+df = pd.read_csv('data_20_0.csv')
+
+#Define the data length
+length = df.shape[0]
+
+#p_j is processing time
+#d_j is due date 
+p_j = df.iloc[:,1].values.tolist()
+d_j = df.iloc[:,2].values.tolist()
+
+
+
+
+
+#B&B function
+#a is already assigned job
+#b is the unscheduled jobs 
+def bui(a,b):
+    #bound is current best bound
+    #best is current best permutation
+    global bound
+    global best
+    #completion time for already assigned job
+    completion = 0
+    penalty = 0
+    #calculate the true penalty for already assigned job
+    for i in(a):   
+        completion = completion+p_j[i]
+        if completion>d_j[i]:
+            penalty = penalty+min(p_j[i],completion-d_j[i])
+    #calculate the unscheduled jobs low bound     
+    for j in (b):
+        if (completion>=d_j[j]):
+             penalty = penalty+p_j[j]
+    #check the node status
+    #the node is not leaf
+    if b:
+        if penalty<bound:
+            for i in(b):
+                tempb = b.copy()
+                tempa = a.copy()
+                tempa.append(i)
+                tempb.remove(i)
+                bui(tempa,tempb)
+    #the node is leaf
+    else:
+        if penalty<bound:
+            bound = penalty
+            best = a 
+
+            
+#calculate the penalty
+def check(final):
+    completion = 0
+    penalty = 0
+    for i in range(0,length):
+        job = final[i]
+        completion = completion+p_j[job]
+        if completion>d_j[job]:
+            penalty = penalty+min(p_j[job],completion-d_j[job])
+    return penalty            
+
+
+
+
+#set a initial Unscheduled job
+Uns_job = []
+for i in range(0,length):
+    Uns_job.append(i)
+    
+bound = 1000
+best = []
+
+
+start = time.time()
+
+bui([],Uns_job)
+print(best)
+print(check(best))
+
+end = time.time()
+
+
+duration = end - start
+print (duration)

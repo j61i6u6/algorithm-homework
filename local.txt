@@ -1,0 +1,98 @@
+import numpy as np
+import pandas as pd
+import random
+import time
+
+#import data, preprocess data
+df = pd.read_csv('data/data_30_1.csv')
+length = df.shape[0]
+p_j = df.iloc[:,1].values.tolist()
+d_j = df.iloc[:,2].values.tolist()
+
+
+
+
+#calculate the penalty
+def check(final):
+    completion = 0
+    penalty = 0
+    for i in range(0,length):
+        job = final[i]
+        completion = completion+p_j[job]
+        if completion>d_j[job]:
+            penalty = penalty+min(p_j[job],completion-d_j[job])
+    return penalty
+
+
+
+
+
+#loacl search function
+def change(final):
+    completion = 0
+    find = 0
+    delaywork = []
+    
+    #find the Tardyjob
+    for i in range(0,length):
+        job = final[i]
+        completion = completion+p_j[job]
+        if completion>d_j[job]:
+            delaywork.append(job)
+    
+    #random select the precede data of tardy job
+    random.shuffle (delaywork)
+    for i in(delaywork):
+        if find == 1:
+            break
+        for j in range(0,length):
+            if i == final[j]:
+                continue
+            temp = final.copy()
+            aaa = temp[j]#the job we want to change
+            #change two job
+            temp[temp.index(i)] = aaa 
+            temp[j] = i
+
+            if check(temp)<best:
+                final = temp
+                find = 1
+                break
+    return final
+                
+
+    
+ 
+
+
+    
+start = time.time()
+quality = 0
+minpenalty = 1000
+#do 500times, take the average
+for i in range(0,500):
+    #EDD solution 
+    sol = sorted(range(len(d_j)), key=lambda k: d_j[k])
+    best = check(sol)
+    #limit round is 100 times
+    for i in range(0,100):
+        #use the local search to improvement the sol
+        sol = change(sol)
+        #when the sol convergence,stop
+        if check(sol)<best:
+            best = check(sol)
+        else: 
+            quality = quality+best
+            if best<minpenalty:
+                minpenalty = best
+            break
+end = time.time()  
+print(minpenalty)
+quality = quality/500
+print(quality)
+duration = (end-start)/500
+print (duration)  
+
+
+
+
